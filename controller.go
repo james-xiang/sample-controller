@@ -153,23 +153,23 @@ func (c *Controller) Run(threadiness int, stopCh <-chan struct{}) error {
 	defer c.workqueue.ShutDown()
 
 	// Start the informer factories to begin populating the informer caches
-	glog.Info("Starting Foo controller")
+	glog.Info("=== Starting Foo controller")
 
 	// Wait for the caches to be synced before starting workers
-	glog.Info("Waiting for informer caches to sync")
+	glog.Info("=== Waiting for informer caches to sync")
 	if ok := cache.WaitForCacheSync(stopCh, c.deploymentsSynced, c.foosSynced); !ok {
 		return fmt.Errorf("failed to wait for caches to sync")
 	}
 
-	glog.Info("Starting workers")
+	glog.Info("=== Starting workers")
 	// Launch two workers to process Foo resources
 	for i := 0; i < threadiness; i++ {
 		go wait.Until(c.runWorker, time.Second, stopCh)
 	}
 
-	glog.Info("Started workers")
+	glog.Info("=== Started workers")
 	<-stopCh
-	glog.Info("Shutting down workers")
+	glog.Info("=== Shutting down workers")
 
 	return nil
 }
@@ -223,7 +223,8 @@ func (c *Controller) processNextWorkItem() bool {
 		// Finally, if no error occurs we Forget this item so it does not
 		// get queued again until another change happens.
 		c.workqueue.Forget(obj)
-		glog.Infof("Successfully synced '%s'", key)
+		glog.Infof("--- Successfully synced '%s'", key)
+		glog.Infof("=== obj: %+v", obj)
 		return nil
 	}(obj)
 
@@ -258,6 +259,7 @@ func (c *Controller) syncHandler(key string) error {
 
 		return err
 	}
+	glog.Infof("=== Sync/Handle: Namespace: %s, name: %s, \nfoo resource: %+v", namespace, name, foo)
 
 	deploymentName := foo.Spec.DeploymentName
 	if deploymentName == "" {
@@ -294,8 +296,9 @@ func (c *Controller) syncHandler(key string) error {
 	// number does not equal the current desired replicas on the Deployment, we
 	// should update the Deployment resource.
 	if foo.Spec.Replicas != nil && *foo.Spec.Replicas != *deployment.Spec.Replicas {
-		glog.V(4).Infof("Foo %s replicas: %d, deployment replicas: %d", name, *foo.Spec.Replicas, *deployment.Spec.Replicas)
+		glog.Infof("### Foo %s replicas: %d, deployment replicas: %d", name, *foo.Spec.Replicas, *deployment.Spec.Replicas)
 		deployment, err = c.kubeclientset.AppsV1().Deployments(foo.Namespace).Update(newDeployment(foo))
+
 	}
 
 	// If an error occurs during Update, we'll requeue the item so we can
