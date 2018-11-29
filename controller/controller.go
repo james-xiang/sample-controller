@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package main
+package controller
 
 import (
 	"fmt"
@@ -219,8 +219,8 @@ func (c *Controller) processNextWorkItem() bool {
 		// Finally, if no error occurs we Forget this item so it does not
 		// get queued again until another change happens.
 		c.workqueue.Forget(obj)
-		glog.Infof("--- Successfully synced '%s'", key)
-		glog.Infof("=== obj: %+v", obj)
+		glog.Infof("=== Successfully synced '%s'", key)
+
 		return nil
 	}(obj)
 
@@ -263,7 +263,6 @@ func (c *Controller) enqueueService(obj interface{}) {
 		runtime.HandleError(err)
 		return
 	}
-	glog.Infof("### Object kind: %+v", obj.(*corev1.Service).Kind)
 	keyWithKind := fmt.Sprintf("Service/%s", key)
 	c.workqueue.AddRateLimited(keyWithKind)
 }
@@ -275,7 +274,6 @@ func (c *Controller) enqueueEndpoints(obj interface{}) {
 		runtime.HandleError(err)
 		return
 	}
-	glog.Infof("### Object kind: %+v", obj.(*corev1.Endpoints).Kind)
 	keyWithKind := fmt.Sprintf("Endpoints/%s", key)
 	c.workqueue.AddRateLimited(keyWithKind)
 }
@@ -294,7 +292,7 @@ func (c *Controller) syncService(namespace, name string) error {
 
 		return err
 	}
-	glog.Infof("=== Sync/Handle: Namespace: %s, name: %s, \nService: %+v", namespace, name, utils.PrettyJSON(svc))
+	glog.Infof("=== Handle resource: Namespace: %s, name: %s, \nService: %+v", namespace, name, utils.PrettyJSON(svc))
 	return nil
 }
 
@@ -312,6 +310,6 @@ func (c *Controller) syncEndpoints(namespace, name string) error {
 
 		return err
 	}
-	glog.Infof("=== Sync/Handle: Namespace: %s, name: %s, \nEndpoints: %+v", namespace, name, utils.PrettyJSON(endpoints))
+	glog.Infof("=== Handle resource: Namespace: %s, name: %s, \nEndpoints: %+v", namespace, name, utils.PrettyJSON(endpoints))
 	return nil
 }
